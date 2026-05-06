@@ -1,7 +1,15 @@
 import sys
+import time
 import operator
+import json
+import urllib.parse
+import urllib.request
+import os
 from typing import Annotated, TypedDict, List, Dict, Literal
 from langgraph.graph import StateGraph, START, END
+
+# Delay applied at the start of each node execution.
+DELAY_SECONDS = 0.5
 
 # 1. Define the State Schema
 class AgentState(TypedDict):
@@ -18,8 +26,45 @@ class AgentState(TypedDict):
 
 # 2. Define the Nodes with Mocked Logic
 
+def google_search(query: str, num_results: int = 5) -> List[str]:
+    """Runs Google Custom Search API and returns top result snippets.
+
+    Requires:
+    - GOOGLE_API_KEY
+    - GOOGLE_CSE_ID
+    """
+    api_key = os.getenv("GOOGLE_API_KEY")
+    cse_id = os.getenv("GOOGLE_CSE_ID")
+
+    if not api_key or not cse_id:
+        return [
+            "Search unavailable: set GOOGLE_API_KEY and GOOGLE_CSE_ID.",
+            "Fallback insight: no live SERP data, treat competition level as uncertain.",
+        ]
+
+    params = urllib.parse.urlencode(
+        {"key": api_key, "cx": cse_id, "q": query, "num": num_results}
+    )
+    url = f"https://www.googleapis.com/customsearch/v1?{params}"
+
+    try:
+        with urllib.request.urlopen(url, timeout=8) as response:
+            payload = json.loads(response.read().decode("utf-8"))
+    except Exception as exc:
+        return [f"Search failed: {exc}"]
+
+    items = payload.get("items", [])
+    if not items:
+        return ["No search results found for this query."]
+
+    return [
+        f"{item.get('title', 'Untitled')} | {item.get('link', 'No link')}"
+        for item in items
+    ]
+
 def trend_researcher(state: AgentState) -> dict:
     """Mocks fetching historical data for a keyword."""
+    time.sleep(DELAY_SECONDS)
     iter_info = f" (Round {state.get('iterations', 0) + 1})"
     print(f"--- [Node: Trend Researcher] Researching: {state['keyword']}{iter_info} ---")
     # Mocked data showing a spike for 'breakout_month'
@@ -36,6 +81,7 @@ def trend_researcher(state: AgentState) -> dict:
 
 def anomaly_detector(state: AgentState) -> dict:
     """Mocks identifying 'Breakout' spikes in the data."""
+    time.sleep(DELAY_SECONDS)
     print("--- [Node: Anomaly Detector] Analyzing spikes ---")
     data = state.get("trend_data", {})
     anomalies = []
@@ -53,6 +99,7 @@ def anomaly_detector(state: AgentState) -> dict:
 
 def market_strategist(state: AgentState) -> dict:
     """Mocks analyzing spikes and suggesting entry points."""
+    time.sleep(DELAY_SECONDS)
     print("--- [Node: Market Strategist] Developing strategy ---")
     anomalies = state.get("anomalies", [])
     current_iters = state.get("iterations", 0)
@@ -64,18 +111,40 @@ def market_strategist(state: AgentState) -> dict:
             "logs": ["Strategist needs more granular data. Requesting refinement..."]
         }
 
+    search_query = f"{state['keyword']} trend {anomalies[0] if anomalies else 'breakout'}"
+    search_results = google_search(search_query, num_results=3)
+    search_signal = " ".join(search_results).lower()
+    competition_is_high = "wikipedia.org" in search_signal or "forbes.com" in search_signal
+    top_result = search_results[0] if search_results else "No result"
+
     if anomalies:
-        strategy = f"Aggressive entry recommended following the {anomalies[0]} breakout. Focus on educational content and early-adopter acquisition."
+        if competition_is_high:
+            strategy = (
+                f"Breakout detected in {anomalies[0]}, but search indicates strong competition. "
+                "Recommend targeted long-tail positioning before paid growth."
+            )
+        else:
+            strategy = (
+                f"Aggressive entry recommended following the {anomalies[0]} breakout. "
+                "Focus on educational content and early-adopter acquisition."
+            )
     else:
-        strategy = "No clear breakout detected. Recommend monitoring and building organic presence without heavy investment."
+        strategy = (
+            "No clear breakout detected. Recommend monitoring and building organic presence without heavy investment."
+        )
         
     return {
         "strategy": strategy,
-        "logs": ["Finalized market entry strategy based on refined data"]
+        "logs": [
+            f"Strategist checked Google results for: {search_query}",
+            f"Top result observed: {top_result}",
+            "Finalized market entry strategy based on refined data",
+        ]
     }
 
 def verification(state: AgentState) -> dict:
     """Mocks using a search tool to check existing content for the trend."""
+    time.sleep(DELAY_SECONDS)
     print("--- [Node: Verification] Verifying market saturation ---")
     # Mocking a search tool result
     verification_result = "Low competition detected. High authority sites haven't covered the December spike yet. Market is OPEN."
