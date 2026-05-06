@@ -1,1 +1,2 @@
 langgraph>=0.2.0
+pytrends>=4.9.2

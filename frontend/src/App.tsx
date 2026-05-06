@@ -1,5 +1,6 @@
 import { useState, useEffect, useRef } from 'react';
 import { Search, Loader2, CheckCircle2, AlertCircle, PlayCircle, Activity } from 'lucide-react';
+import { Link } from 'react-router-dom';
 import Mermaid from './components/Mermaid';
 
 interface ILog {
@@ -92,11 +93,21 @@ function App() {
   return (
     <div className="min-h-screen bg-slate-50 text-slate-900 p-8 font-sans">
       <header className="max-w-6xl mx-auto mb-12">
-        <h1 className="text-4xl font-bold text-slate-800 flex items-center gap-3">
-          <Activity className="text-orange-500" size={36} />
-          Агент по поиску ниш
-        </h1>
-        <p className="text-slate-500 mt-2">Автономное исследование рынка на базе LangGraph</p>
+        <div className="flex items-center justify-between gap-4 flex-wrap">
+          <div>
+            <h1 className="text-4xl font-bold text-slate-800 flex items-center gap-3">
+              <Activity className="text-orange-500" size={36} />
+              Агент по поиску ниш
+            </h1>
+            <p className="text-slate-500 mt-2">Автономное исследование рынка на базе LangGraph</p>
+          </div>
+          <Link
+            to="/db-viewer"
+            className="bg-slate-800 hover:bg-slate-700 text-white px-4 py-2 rounded-lg font-medium"
+          >
+            Open DB Viewer
+          </Link>
+        </div>
       </header>
 
       <main className="max-w-6xl mx-auto grid grid-cols-1 lg:grid-cols-2 gap-8">
