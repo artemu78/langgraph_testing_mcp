@@ -1,0 +1,17 @@
+{
+  "skills": {
+    "disabled": [
+      "remotion-best-practices",
+      "hw-lesson-7-checker",
+      "hw-lesson-2-checker-ai-for-devs",
+      "Homework checker, AI-Agents, hw 4, lesson 17",
+      "Homework checker, AI-Agents, hw 3, lesson 11",
+      "supabase-storage",
+      "playwright-best-practices",
+      "responsiveness-check",
+      "docker-expert",
+      "to-prd",
+      "gws-slides"
+    ]
+  }
+}
