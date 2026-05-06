@@ -21,6 +21,8 @@ async def research(keyword: Annotated[str, Query()]):
     async def event_generator():
         initial_input = {
             "keyword": keyword,
+            "iterations": 0,
+            "should_research_again": False,
             "logs": [f"Agent initialized for: {keyword}"]
         }
         
